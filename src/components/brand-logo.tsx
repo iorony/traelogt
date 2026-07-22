@@ -1,0 +1,2 @@
+import Image from "next/image";import Link from "next/link";
+export default function BrandLogo({light=false}:{light?:boolean}){return <Link href="/" className="inline-flex items-center gap-3"><Image src="/traelo-gt-logo.png" alt="Tráelo GT" width={52} height={52} className="rounded-full"/><span className={`font-black italic text-xl ${light?"text-white":"text-black"}`}>TRÁELO <b className="text-[#ff6b00]">GT</b></span></Link>}
