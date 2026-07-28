@@ -1,23 +1,29 @@
 "use client";
-import Image from "next/image";import Link from "next/link";import {useEffect,useState} from "react";import {ArrowRight,Menu,MessageCircle,Minus,Plus,ShoppingBag,Trash2,UserRound,X} from "lucide-react";
+import Image from "next/image";import Link from "next/link";import {forwardRef,useEffect,useLayoutEffect,useRef,useState} from "react";import {ArrowRight,Menu,MessageCircle,Minus,Plus,ShoppingBag,Trash2,UserRound,X} from "lucide-react";
 import BrandLogo from "@/components/brand-logo";import {effectivePrice,formatGTQ} from "@/lib/format";import {CartItem} from "@/lib/types";
 const key="traelo-cart";
 
-/** Barra de anuncio + header con menú, cuenta y carrito. Único header para todo el sitio público. */
-export function SiteHeader({announcement,onCart}:{announcement:string;onCart:()=>void}){
+/**
+ * Barra de anuncio + header con menú, cuenta y carrito. Único header para todo el sitio público.
+ * Se posiciona fija (no "sticky") para garantizar que quede pegada arriba en todos los navegadores,
+ * incluidos los casos donde overflow-x:hidden en html/body rompe el comportamiento de sticky.
+ */
+export const SiteHeader=forwardRef<HTMLDivElement,{announcement:string;onCart:()=>void}>(function SiteHeader({announcement,onCart},ref){
  const [count,setCount]=useState(0),[menu,setMenu]=useState(false);
  useEffect(()=>{const sync=()=>setCount(JSON.parse(localStorage.getItem(key)||"[]").reduce((a:number,i:CartItem)=>a+i.quantity,0));sync();addEventListener("cart-change",sync);return()=>removeEventListener("cart-change",sync)},[]);
  const close=()=>setMenu(false);
- return <><div className="bg-black text-white text-center text-xs py-2.5 px-3">{announcement}</div>
- <header className="border-b bg-white sticky top-0 z-30">
+ return <div ref={ref} className="fixed top-0 inset-x-0 z-30">
+ <div className="bg-black text-white text-center text-xs py-2.5 px-3">{announcement}</div>
+ <header className="border-b bg-white relative">
   <div className="container h-20 flex items-center gap-8">
    <button onClick={()=>setMenu(!menu)} aria-expanded={menu} aria-label={menu?"Cerrar menú":"Abrir menú"} className="md:hidden w-10 h-10 grid place-items-center rounded-full border"><Menu/></button>
    <BrandLogo/>
    <nav className="hidden md:flex gap-7 text-sm font-bold ml-4"><Link href="/productos">Productos disponibles</Link><Link href="/cotizar">Cotizar producto</Link><Link href="/rastreo">Rastrear</Link></nav>
    <div className="ml-auto flex items-center gap-5"><Link href="/mi-cuenta" aria-label="Mi cuenta"><UserRound size={20}/></Link><button onClick={onCart} className="relative" aria-label={`Carrito, ${count} artículos`}><ShoppingBag size={22}/>{count>0&&<span className="absolute -top-2 -right-2 bg-[#ff6b00] text-white w-5 h-5 text-[10px] rounded-full grid place-items-center">{count}</span>}</button></div>
   </div>
-  {menu&&<nav className="md:hidden border-t px-4 py-4 grid gap-2 font-bold text-sm bg-white"><Link onClick={close} className="p-3 rounded-xl bg-[#f5f5f3]" href="/productos">Productos disponibles</Link><Link onClick={close} className="p-3 rounded-xl bg-[#f5f5f3]" href="/cotizar">Cotizar producto</Link><Link onClick={close} className="p-3 rounded-xl bg-[#f5f5f3]" href="/rastreo">Rastrear</Link></nav>}
- </header></>}
+  {menu&&<nav className="md:hidden absolute top-full inset-x-0 border-t px-4 py-4 grid gap-2 font-bold text-sm bg-white shadow-lg max-h-[75vh] overflow-y-auto"><Link onClick={close} className="p-3 rounded-xl bg-[#f5f5f3]" href="/productos">Productos disponibles</Link><Link onClick={close} className="p-3 rounded-xl bg-[#f5f5f3]" href="/cotizar">Cotizar producto</Link><Link onClick={close} className="p-3 rounded-xl bg-[#f5f5f3]" href="/rastreo">Rastrear</Link></nav>}
+ </header>
+ </div>});
 
 /** Panel lateral de carrito, disponible desde cualquier página vía SiteHeader. */
 export function CartDrawer({open,onClose}:{open:boolean;onClose:()=>void}){
@@ -45,12 +51,23 @@ export function WhatsAppButton(){return <a href="https://wa.me/50242902957" targ
 
 /**
  * Envoltorio único para cualquier página pública: header + carrito + footer + WhatsApp.
- * Usar en toda página de la tienda para que ninguna se salga del sistema visual.
+ * El header es fixed, así que este componente mide su altura real (con ResizeObserver, se ajusta
+ * si el texto del anuncio cambia de tamaño) y agrega un espaciador para que el contenido no quede tapado.
  */
 export default function PublicChrome({announcement,children}:{announcement:string;children:React.ReactNode}){
  const [cart,setCart]=useState(false);
+ const headerRef=useRef<HTMLDivElement>(null);
+ const [offset,setOffset]=useState(112);
+ useLayoutEffect(()=>{
+  const el=headerRef.current;if(!el)return;
+  const update=()=>setOffset(el.offsetHeight);
+  update();
+  const ro=new ResizeObserver(update);ro.observe(el);
+  return ()=>ro.disconnect();
+ },[]);
  return <>
-  <SiteHeader announcement={announcement} onCart={()=>setCart(true)}/>
+  <SiteHeader ref={headerRef} announcement={announcement} onCart={()=>setCart(true)}/>
+  <div style={{height:offset}} aria-hidden/>
   {children}
   <SiteFooter/>
   <WhatsAppButton/>

@@ -1,1 +1,1 @@
-export default function AdminHeader({role}:{role:"admin"|"supervisor"}){return <div className="bg-white border-b px-5 md:px-9 py-3 text-xs text-[#666] text-right">Sesión: <strong>{role==="admin"?"Administrador global":"Supervisor"}</strong></div>}
+export default function AdminHeader({role}:{role:"admin"|"supervisor"}){return <div className="admin-topbar bg-white border-b px-5 md:px-9 py-3 text-xs text-[#666] text-right">Sesión: <strong>{role==="admin"?"Administrador global":"Supervisor"}</strong></div>}
