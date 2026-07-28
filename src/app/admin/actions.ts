@@ -5,25 +5,3 @@ export async function changeUserStatus(formData:FormData){const staff=await requ
 export async function changeUserRole(formData:FormData){const staff=await requireStaff("admin");const userId=uuid.parse(formData.get("userId"));const role=z.enum(["admin","supervisor","customer"]).parse(formData.get("role"));if(userId===staff.userId&&role!=="admin")throw new Error("No puedes retirar tu propio rol de administrador");const db=createAdminClient();const {data:roleRow,error:roleError}=await db.from("roles").select("id").eq("name",role).single();if(roleError||!roleRow)throw new Error("Rol inválido");await db.from("user_roles").delete().eq("user_id",userId);const {error}=await db.from("user_roles").insert({user_id:userId,role_id:roleRow.id});if(error)throw new Error("No se pudo asignar el rol");await db.from("audit_logs").insert({user_id:staff.userId,action:"change_user_role",module:"users",record_id:userId,new_data:{role}});revalidatePath("/admin/usuarios");revalidatePath("/admin/supervisores")}
 export async function toggleProduct(formData:FormData){const staff=await requireStaff();const productId=uuid.parse(formData.get("productId"));const activate=formData.get("activate")==="true";const db=createAdminClient();const {error}=await db.from("products").update({is_active:activate,status:activate?"active":"inactive",updated_by:staff.userId}).eq("id",productId);if(error)throw new Error("No se pudo actualizar el producto");await db.from("audit_logs").insert({user_id:staff.userId,action:activate?"activate_product":"deactivate_product",module:"products",record_id:productId});revalidatePath("/admin/productos")}
 export async function createProduct(formData:FormData){const staff=await requireStaff();const name=z.string().trim().min(3).max(160).parse(formData.get("name"));const sku=z.string().trim().min(2).max(60).parse(formData.get("sku"));const price=z.coerce.number().nonnegative().parse(formData.get("price"));const stock=z.coerce.number().int().nonnegative().parse(formData.get("stock"));const minimumStock=z.coerce.number().int().nonnegative().parse(formData.get("minimumStock"));const slug=`${name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/(^-|-$)/g,"")}-${crypto.randomUUID().slice(0,6)}`;const db=createAdminClient();const {data,error}=await db.from("products").insert({name,sku,slug,price,stock,minimum_stock:minimumStock,status:"active",is_active:true,created_by:staff.userId,updated_by:staff.userId}).select("id").single();if(error)throw new Error(error.code==="23505"?"El SKU ya existe":"No se pudo crear el producto");await db.from("audit_logs").insert({user_id:staff.userId,action:"create_product",module:"products",record_id:data.id,new_data:{name,sku,price,stock}});revalidatePath("/admin/productos")}
-
-export async function updateOrderDecision(formData:FormData){
-  const staff=await requireStaff();
-  const orderId=uuid.parse(formData.get("orderId"));
-  const decision=z.enum(["confirmed","rejected"]).parse(formData.get("decision"));
-  const comment=z.string().trim().max(500).optional().parse(formData.get("comment")?.toString()||undefined);
-  const db=createAdminClient();
-  const {data:order,error:readError}=await db.from("orders").select("id,status,payment_method").eq("id",orderId).single();
-  if(readError||!order)throw new Error("No se encontró el pedido");
-  const allowed=["pending_confirmation","pending_payment","payment_review"];
-  if(!allowed.includes(order.status))throw new Error("Este pedido ya fue procesado");
-  if(decision==="confirmed"&&order.payment_method==="bank_transfer"&&order.status!=="payment_review")throw new Error("Primero debe validarse el comprobante de transferencia");
-  const now=new Date().toISOString();
-  const update:Record<string,unknown>={status:decision,updated_at:now};
-  if(decision==="confirmed")update.confirmed_at=now;
-  const {error}=await db.from("orders").update(update).eq("id",orderId).eq("status",order.status);
-  if(error)throw new Error("No se pudo actualizar el pedido");
-  await db.from("order_status_history").insert({order_id:orderId,old_status:order.status,new_status:decision,public_comment:decision==="confirmed"?"Pedido confirmado":"Pedido rechazado",internal_comment:comment||null,responsible_user:staff.userId});
-  await db.from("audit_logs").insert({user_id:staff.userId,action:decision==="confirmed"?"confirm_order":"reject_order",module:"orders",record_id:orderId,new_data:{status:decision,comment:comment||null}});
-  revalidatePath("/admin/pedidos");
-  revalidatePath("/admin");
-}

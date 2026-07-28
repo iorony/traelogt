@@ -1,0 +1,58 @@
+"use client";
+import Image from "next/image";import Link from "next/link";import {useEffect,useState} from "react";import {ArrowRight,Menu,MessageCircle,Minus,Plus,ShoppingBag,Trash2,UserRound,X} from "lucide-react";
+import BrandLogo from "@/components/brand-logo";import {effectivePrice,formatGTQ} from "@/lib/format";import {CartItem} from "@/lib/types";
+const key="traelo-cart";
+
+/** Barra de anuncio + header con menú, cuenta y carrito. Único header para todo el sitio público. */
+export function SiteHeader({announcement,onCart}:{announcement:string;onCart:()=>void}){
+ const [count,setCount]=useState(0),[menu,setMenu]=useState(false);
+ useEffect(()=>{const sync=()=>setCount(JSON.parse(localStorage.getItem(key)||"[]").reduce((a:number,i:CartItem)=>a+i.quantity,0));sync();addEventListener("cart-change",sync);return()=>removeEventListener("cart-change",sync)},[]);
+ const close=()=>setMenu(false);
+ return <><div className="bg-black text-white text-center text-xs py-2.5 px-3">{announcement}</div>
+ <header className="border-b bg-white sticky top-0 z-30">
+  <div className="container h-20 flex items-center gap-8">
+   <button onClick={()=>setMenu(!menu)} aria-expanded={menu} aria-label={menu?"Cerrar menú":"Abrir menú"} className="md:hidden w-10 h-10 grid place-items-center rounded-full border"><Menu/></button>
+   <BrandLogo/>
+   <nav className="hidden md:flex gap-7 text-sm font-bold ml-4"><Link href="/productos">Productos disponibles</Link><Link href="/cotizar">Cotizar producto</Link><Link href="/rastreo">Rastrear</Link></nav>
+   <div className="ml-auto flex items-center gap-5"><Link href="/mi-cuenta" aria-label="Mi cuenta"><UserRound size={20}/></Link><button onClick={onCart} className="relative" aria-label={`Carrito, ${count} artículos`}><ShoppingBag size={22}/>{count>0&&<span className="absolute -top-2 -right-2 bg-[#ff6b00] text-white w-5 h-5 text-[10px] rounded-full grid place-items-center">{count}</span>}</button></div>
+  </div>
+  {menu&&<nav className="md:hidden border-t px-4 py-4 grid gap-2 font-bold text-sm bg-white"><Link onClick={close} className="p-3 rounded-xl bg-[#f5f5f3]" href="/productos">Productos disponibles</Link><Link onClick={close} className="p-3 rounded-xl bg-[#f5f5f3]" href="/cotizar">Cotizar producto</Link><Link onClick={close} className="p-3 rounded-xl bg-[#f5f5f3]" href="/rastreo">Rastrear</Link></nav>}
+ </header></>}
+
+/** Panel lateral de carrito, disponible desde cualquier página vía SiteHeader. */
+export function CartDrawer({open,onClose}:{open:boolean;onClose:()=>void}){
+ const [items,setItems]=useState<CartItem[]>([]);
+ useEffect(()=>{if(open)setItems(JSON.parse(localStorage.getItem(key)||"[]"))},[open]);
+ const save=(x:CartItem[])=>{localStorage.setItem(key,JSON.stringify(x));setItems(x);dispatchEvent(new Event("cart-change"))};
+ const total=items.reduce((s,i)=>s+effectivePrice(i)*i.quantity,0);
+ return <><div onClick={onClose} className={`fixed inset-0 bg-black/40 z-40 ${open?"opacity-100":"opacity-0 pointer-events-none"}`}/>
+ <aside className={`fixed right-0 top-0 h-full w-full max-w-md bg-white z-50 p-6 transition-transform ${open?"translate-x-0":"translate-x-full"}`}>
+  <div className="flex justify-between border-b pb-5"><h2 className="text-2xl font-black">Tu carrito</h2><button onClick={onClose} aria-label="Cerrar carrito"><X/></button></div>
+  <div className="py-5 space-y-5">{!items.length&&<p className="text-center py-20 text-[#777]">Aún no agregaste productos.</p>}
+   {items.map(i=><div key={i.id} className="flex gap-4"><div className="relative w-20 h-24 rounded-xl overflow-hidden bg-[#eee]">{i.main_image_url&&<Image src={i.main_image_url} alt="" fill className="object-cover"/>}</div>
+    <div className="flex-1"><p className="font-bold">{i.name}</p><p>{formatGTQ(effectivePrice(i))}</p>
+     <div className="flex gap-3 mt-3 items-center"><button onClick={()=>save(items.map(x=>x.id===i.id?{...x,quantity:Math.max(1,x.quantity-1)}:x))} aria-label="Restar"><Minus size={15}/></button><span>{i.quantity}</span><button onClick={()=>save(items.map(x=>x.id===i.id?{...x,quantity:Math.min(x.stock,x.quantity+1)}:x))} aria-label="Sumar"><Plus size={15}/></button><button className="ml-auto text-red-600" onClick={()=>save(items.filter(x=>x.id!==i.id))} aria-label="Eliminar"><Trash2 size={16}/></button></div>
+    </div></div>)}
+  </div>
+  {items.length>0&&<div className="absolute bottom-0 left-0 right-0 border-t bg-white p-6"><div className="flex justify-between font-black text-lg mb-4"><span>Subtotal</span><span>{formatGTQ(total)}</span></div><Link href="/checkout" onClick={onClose} className="btn btn-primary w-full">Finalizar compra <ArrowRight size={17}/></Link></div>}
+ </aside></>}
+
+/** Pie de página único para todo el sitio público. */
+export function SiteFooter(){return <footer className="bg-black text-white py-12"><div className="container flex flex-wrap justify-between gap-7"><BrandLogo light/><div><p className="font-bold">Tráelo GT</p><p className="text-white/60 text-sm mt-2">Rápido · Seguro · Confiable</p></div><a href="https://www.instagram.com/somos.traelogt" target="_blank" rel="noreferrer" className="font-bold">@somos.traelogt</a></div></footer>}
+
+/** Botón flotante de WhatsApp, presente en todas las páginas públicas. */
+export function WhatsAppButton(){return <a href="https://wa.me/50242902957" target="_blank" rel="noreferrer" className="fixed bottom-6 right-6 bg-[#25d366] text-white rounded-full w-14 h-14 grid place-items-center shadow-xl z-30" aria-label="WhatsApp"><MessageCircle/></a>}
+
+/**
+ * Envoltorio único para cualquier página pública: header + carrito + footer + WhatsApp.
+ * Usar en toda página de la tienda para que ninguna se salga del sistema visual.
+ */
+export default function PublicChrome({announcement,children}:{announcement:string;children:React.ReactNode}){
+ const [cart,setCart]=useState(false);
+ return <>
+  <SiteHeader announcement={announcement} onCart={()=>setCart(true)}/>
+  {children}
+  <SiteFooter/>
+  <WhatsAppButton/>
+  <CartDrawer open={cart} onClose={()=>setCart(false)}/>
+ </>}

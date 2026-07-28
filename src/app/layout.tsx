@@ -1,3 +1,3 @@
-import type {Metadata} from "next";import "./globals.css";import CheckoutPrefill from "@/components/checkout-prefill";import PublicChrome from "@/components/public-chrome";
+import type {Metadata} from "next";import "./globals.css";import CheckoutPrefill from "@/components/checkout-prefill";
 export const metadata:Metadata={title:{default:"Tráelo GT | Lo querés, lo traemos",template:"%s | Tráelo GT"},description:"Cotizamos y traemos tus compras de Temu, SHEIN, AliExpress y Amazon a Guatemala. También compra productos disponibles con entrega local.",icons:{icon:"/traelo-gt-logo.png"}};
-export default function RootLayout({children}:{children:React.ReactNode}){return <html lang="es"><body><CheckoutPrefill/><PublicChrome/>{children}</body></html>}
+export default function RootLayout({children}:{children:React.ReactNode}){return <html lang="es"><body><CheckoutPrefill/>{children}</body></html>}
