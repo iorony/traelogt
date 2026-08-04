@@ -10,12 +10,12 @@ function normalize(row:Record<string,unknown>):Product{
 export async function getPublicProducts(filters?:{categorySlug?:string;search?:string}):Promise<Product[]>{
   const db=await createClient();
   const categoryRelation=filters?.categorySlug?"category:categories!inner(name,slug)":"category:categories(name,slug)";
-  let query=db.from("products").select(`id,sku,name,slug,short_description,price,sale_price,stock,minimum_stock,status,featured,main_image_url,${categoryRelation}`).eq("is_active",true).eq("status","active").is("deleted_at",null);
+  let query=db.from("products").select(`id,sku,name,slug,short_description,price,sale_price,stock,minimum_stock,status,featured,main_image_url,product_images(path,alt_text,display_order),${categoryRelation}`).eq("is_active",true).eq("status","active").is("deleted_at",null);
   if(filters?.categorySlug)query=query.eq("category.slug",filters.categorySlug);
   if(filters?.search)query=query.ilike("name",`%${filters.search}%`);
   const {data,error}=await query.order("featured",{ascending:false}).order("created_at",{ascending:false});
   if(error){console.error("No se pudo consultar el catálogo público:",error.message);return []}
-  return (data??[]).map(row=>normalize(row as unknown as Record<string,unknown>));
+  return (data??[]).map(row=>{const raw=row as unknown as Record<string,unknown>;const product=normalize(raw);const images=(Array.isArray(raw.product_images)?raw.product_images:[]) as {path:string;alt_text:string|null;display_order:number}[];product.images=images.sort((a,b)=>a.display_order-b.display_order).map(image=>({url:db.storage.from("product-images").getPublicUrl(image.path).data.publicUrl,alt:image.alt_text}));return product});
 }
 
 export async function getPublicProduct(slug:string){const products=await getPublicProducts();return products.find(product=>product.slug===slug)}

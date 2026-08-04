@@ -19,7 +19,7 @@ Las instrucciones manuales completas están en `docs/CONFIGURACION_SUPABASE.md`.
 1. Instala Node.js 20 o superior.
 2. Ejecuta `npm install`.
 3. Copia `.env.example` a `.env.local` y completa las claves de tu proyecto Supabase.
-4. En Supabase SQL Editor ejecuta `supabase/migrations/001_initial_schema.sql` y después `supabase/seed.sql`.
+4. En Supabase SQL Editor ejecuta todos los archivos de `supabase/migrations` en orden numérico (`001` a `022`) y después, opcionalmente, `supabase/seed.sql`.
 5. Crea los buckets `product-images` (público), `store-assets` (público) y `payment-receipts` (privado). Limita comprobantes a JPG, PNG o PDF y usa URLs firmadas.
 6. Ejecuta `npm run dev` y abre `http://localhost:3000`.
 
@@ -40,6 +40,8 @@ Nunca incluyas contraseñas o la `SUPABASE_SERVICE_ROLE_KEY` en Git.
 ## Flujo de pedido
 
 `Pendiente → reserva de inventario → confirmación/pago → preparación → empaque → envío → entrega`.
+
+El carrito persistente sigue el patrón del proyecto marketplace y admite líneas independientes por color, talla o variante. El servidor vuelve a calcular precios y agrupa cantidades por producto antes de reservar inventario. Desde el detalle administrativo del pedido se ejecutan transiciones transaccionales: cancelar o rechazar libera la reserva; entregar la consume y descuenta las existencias.
 
 Las transferencias pasan por revisión antes de preparación. Una cancelación libera la reserva. La salida definitiva ocurre al entregar. Cada transición se registra en `order_status_history`; los valores históricos de producto viven en `order_items`.
 
