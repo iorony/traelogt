@@ -19,8 +19,16 @@ Las instrucciones manuales completas están en `docs/CONFIGURACION_SUPABASE.md`.
 1. Instala Node.js 20 o superior.
 2. Ejecuta `npm install`.
 3. Copia `.env.example` a `.env.local` y completa las claves de tu proyecto Supabase.
-4. En Supabase SQL Editor ejecuta todos los archivos de `supabase/migrations` en orden numérico (`001` a `026`) y después, opcionalmente, `supabase/seed.sql`.
+4. En Supabase SQL Editor ejecuta todos los archivos de `supabase/migrations` en orden numérico (`001` a `027`) y después, opcionalmente, `supabase/seed.sql`.
 5. Crea los buckets `product-images` (público), `store-assets` (público) y `payment-receipts` (privado). Limita comprobantes a JPG, PNG o PDF y usa URLs firmadas.
+
+### Acceso con Google
+
+1. En Google Cloud crea credenciales OAuth 2.0 para aplicación web.
+2. Agrega como URI autorizada la URL de callback mostrada en Supabase: `https://<project-ref>.supabase.co/auth/v1/callback`.
+3. En Supabase abre Authentication → Providers → Google, habilita el proveedor y guarda el Client ID y Client Secret.
+4. En Authentication → URL Configuration agrega `http://localhost:3000/auth/confirm` y la URL equivalente de producción a la lista de redirecciones permitidas.
+5. Define `NEXT_PUBLIC_SITE_URL` con la URL pública exacta del sitio.
 6. Ejecuta `npm run dev` y abre `http://localhost:3000`.
 
 ## Primer administrador
