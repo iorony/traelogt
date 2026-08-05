@@ -13,7 +13,7 @@ declare
 begin
   if jsonb_array_length(payload->'items')=0 then raise exception 'EMPTY_ORDER'; end if;
   order_no:='PED-'||yr||'-'||lpad(nextval('order_number_seq')::text,6,'0');
-  loop tracking:='GT-'||upper(substr(encode(gen_random_bytes(8),'hex'),1,8));exit when not exists(select 1 from orders where tracking_code=tracking);end loop;
+  loop tracking:='GT-'||upper(substr(replace(gen_random_uuid()::text,'-',''),1,8));exit when not exists(select 1 from orders where tracking_code=tracking);end loop;
   select shipping_cost,whatsapp into shipping_value,whatsapp_number from store_settings where id=true;
   for item in
     select entry.value

@@ -5,13 +5,13 @@ import {createJSONStorage,persist} from "zustand/middleware";
 import {effectivePrice} from "@/lib/format";
 import type {CartItem,Product} from "@/lib/types";
 
-const lineKey=(item:Pick<CartItem,"id"|"details">)=>`${item.id}:${item.details?.trim().toLowerCase()??""}`;
+const lineKey=(item:Pick<CartItem,"id"|"details"|"variantId">)=>`${item.id}:${item.variantId??item.details?.trim().toLowerCase()??""}`;
 
 type CartState={
   items:CartItem[];
   hydrated:boolean;
   setHydrated:(value:boolean)=>void;
-  addProduct:(product:Product,details?:string,quantity?:number)=>void;
+  addProduct:(product:Product,details?:string,quantity?:number,variantId?:string)=>void;
   updateQuantity:(key:string,quantity:number)=>void;
   removeItem:(key:string)=>void;
   clear:()=>void;
@@ -21,8 +21,8 @@ export const useCart=create<CartState>()(persist((set)=>({
   items:[],
   hydrated:false,
   setHydrated:(hydrated)=>set({hydrated}),
-  addProduct:(product,details="",quantity=1)=>set((state)=>{
-    const incoming:CartItem={...product,details:details.trim()||undefined,quantity};
+  addProduct:(product,details="",quantity=1,variantId)=>set((state)=>{
+    const incoming:CartItem={...product,details:details.trim()||undefined,variantId,quantity};
     const key=lineKey(incoming);
     const found=state.items.find((item)=>lineKey(item)===key);
     if(found)return {items:state.items.map((item)=>lineKey(item)===key?{...item,quantity:Math.min(item.stock,item.quantity+quantity)}:item)};

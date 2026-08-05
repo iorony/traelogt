@@ -37,7 +37,7 @@ export default function Checkout(){
       firstName:form.get("firstName"),lastName:form.get("lastName"),phone:form.get("phone"),email:form.get("email"),
       address:form.get("address"),department:form.get("department"),municipality:form.get("municipality"),zone:form.get("zone"),
       reference:form.get("reference"),notes:form.get("notes"),paymentMethod:payment,accepted:form.get("accepted")==="on",
-      items:items.map(item=>({productId:item.id,quantity:item.quantity,details:item.details})),
+      items:items.map(item=>({productId:item.id,variantId:item.variantId,quantity:item.quantity,details:item.details})),
     };
     try{
       const response=await fetch("/api/orders",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(body)});

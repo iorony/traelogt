@@ -5,16 +5,16 @@ import {createAdminClient} from "@/lib/supabase/admin";
 export async function POST(request:Request){
   const parsed=trackingSchema.safeParse(await request.json());
   if(!parsed.success)return NextResponse.json({error:"Código o teléfono inválido"},{status:400});
-  const phone=parsed.data.phone.replace(/\D/g,"");
+  const phone=parsed.data.phone.replace(/\D/g,""),identifier=parsed.data.trackingCode;
   const db=createAdminClient();
-  const {data:order,error}=await db.from("orders")
-    .select("id,order_number,tracking_code,created_at,updated_at,status,payment_method,total,department,municipality,order_items(product_name,quantity,variant_details),order_status_history(new_status,public_comment,created_at)")
-    .eq("tracking_code",parsed.data.trackingCode).eq("phone",phone).maybeSingle();
+  let query=db.from("orders").select("id,order_number,tracking_code,created_at,updated_at,status,payment_method,total,department,municipality,order_items(product_name,quantity,variant_details),order_status_history(new_status,public_comment,created_at)").eq("phone",phone);
+  query=identifier.startsWith("PED-")?query.eq("order_number",identifier):query.eq("tracking_code",identifier);
+  const {data:order,error}=await query.maybeSingle();
   if(error||!order)return NextResponse.json({error:"No encontramos un pedido con esos datos"},{status:404});
   return NextResponse.json({
     orderNumber:`${order.order_number.slice(0,9)}••${order.order_number.slice(-4)}`,
     trackingCode:order.tracking_code,createdAt:order.created_at,updatedAt:order.updated_at,status:order.status,
     paymentMethod:order.payment_method,total:order.total,deliveryArea:order.municipality&&order.department?`${order.municipality}, ${order.department}`:"Por confirmar por WhatsApp",
-    items:order.order_items,history:order.order_status_history,
+    items:order.order_items,history:[...(order.order_status_history??[])].sort((a,b)=>new Date(a.created_at).getTime()-new Date(b.created_at).getTime()),
   });
 }
