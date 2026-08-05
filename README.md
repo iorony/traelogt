@@ -19,7 +19,7 @@ Las instrucciones manuales completas están en `docs/CONFIGURACION_SUPABASE.md`.
 1. Instala Node.js 20 o superior.
 2. Ejecuta `npm install`.
 3. Copia `.env.example` a `.env.local` y completa las claves de tu proyecto Supabase.
-4. En Supabase SQL Editor ejecuta todos los archivos de `supabase/migrations` en orden numérico (`001` a `025`) y después, opcionalmente, `supabase/seed.sql`.
+4. En Supabase SQL Editor ejecuta todos los archivos de `supabase/migrations` en orden numérico (`001` a `026`) y después, opcionalmente, `supabase/seed.sql`.
 5. Crea los buckets `product-images` (público), `store-assets` (público) y `payment-receipts` (privado). Limita comprobantes a JPG, PNG o PDF y usa URLs firmadas.
 6. Ejecuta `npm run dev` y abre `http://localhost:3000`.
 

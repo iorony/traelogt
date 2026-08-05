@@ -1,5 +1,5 @@
 "use client";
-import Image from "next/image";import Link from "next/link";import {forwardRef,useLayoutEffect,useRef,useState} from "react";import {ArrowRight,Menu,MessageCircle,Minus,Plus,ShoppingBag,Trash2,UserRound,X} from "lucide-react";
+import Image from "next/image";import Link from "next/link";import {forwardRef,useEffect,useLayoutEffect,useRef,useState} from "react";import {ArrowRight,Menu,MessageCircle,Minus,Plus,ShoppingBag,Trash2,UserRound,X} from "lucide-react";
 import BrandLogo from "@/components/brand-logo";import {effectivePrice,formatGTQ} from "@/lib/format";import {cartLineKey,cartSubtotal,useCart} from "@/hooks/use-cart";
 
 /**
@@ -42,7 +42,7 @@ export function CartDrawer({open,onClose}:{open:boolean;onClose:()=>void}){
 export function SiteFooter(){return <footer className="bg-black text-white py-12"><div className="container flex flex-wrap justify-between gap-7"><BrandLogo light/><div><p className="font-bold">Tráelo GT</p><p className="text-white/60 text-sm mt-2">Rápido · Seguro · Confiable</p></div><a href="https://www.instagram.com/somos.traelogt" target="_blank" rel="noreferrer" className="font-bold">@somos.traelogt</a></div></footer>}
 
 /** Botón flotante de WhatsApp, presente en todas las páginas públicas. */
-export function WhatsAppButton(){return <a href="https://wa.me/50242902957" target="_blank" rel="noreferrer" className="fixed bottom-6 right-6 bg-[#25d366] text-white rounded-full w-14 h-14 grid place-items-center shadow-xl z-30" aria-label="WhatsApp"><MessageCircle/></a>}
+export function WhatsAppButton(){const [number,setNumber]=useState("50258221607");useEffect(()=>{fetch("/api/store-settings").then(response=>response.ok?response.json():null).then(data=>{if(data?.whatsapp)setNumber(data.whatsapp)}).catch(()=>undefined)},[]);return <a href={`https://wa.me/${number}`} target="_blank" rel="noreferrer" className="fixed bottom-6 right-6 bg-[#25d366] text-white rounded-full w-14 h-14 grid place-items-center shadow-xl z-30" aria-label="WhatsApp"><MessageCircle/></a>}
 
 /**
  * Envoltorio único para cualquier página pública: header + carrito + footer + WhatsApp.
