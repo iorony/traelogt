@@ -5,7 +5,6 @@ import {useEffect,useRef,useState} from "react";
 import {Bookmark,CheckCircle2,Clipboard,Download,ExternalLink,ImageIcon,Link2,Monitor,Plus,ShoppingBag,Smartphone,Trash2} from "lucide-react";
 import PublicChrome from "@/components/site-chrome";
 import {makeTemuCompatibleBookmarklet} from "@/lib/product-bookmarklet-temu";
-import {makeBookmarkletLoader} from "@/lib/bookmarklet-loader";
 
 type StoreKey="temu"|"shein"|"aliexpress"|"amazon"|"other";
 type Currency="USD"|"MXN"|"GTQ";
@@ -50,8 +49,8 @@ export default function Cotizar(){
     }else if(store&&["temu","shein","aliexpress","amazon"].includes(store))setItems(saved.length?[...saved,empty(store)].slice(-20):[empty(store)]);
     else if(saved.length)setItems(saved);
     const destination=`${location.origin}/cotizar`,code=`javascript:(()=>{try{const m=k=>document.querySelector('meta[property="'+k+'"],meta[name="'+k+'"]')?.content||'';let j={};for(const s of document.querySelectorAll('script[type="application/ld+json"]')){try{const x=JSON.parse(s.textContent),a=Array.isArray(x)?x:[x],p=a.find(v=>v&&v['@type']==='Product')||a.flatMap(v=>v?.['@graph']||[]).find(v=>v?.['@type']==='Product');if(p){j=p;break}}catch(e){}}const o=Array.isArray(j.offers)?j.offers[0]:(j.offers||{}),h=location.hostname,store=h.includes('temu')?'temu':h.includes('shein')?'shein':h.includes('aliexpress')?'aliexpress':h.includes('amazon')?'amazon':'other',image=typeof j.image==='string'?j.image:Array.isArray(j.image)?j.image[0]:m('og:image'),q=new URLSearchParams({capture:'1',store,url:location.href,name:j.name||m('og:title')||document.title,price:String(o.price||m('product:price:amount')||''),currency:o.priceCurrency||m('product:price:currency')||(h.includes('amazon')?'USD':'MXN'),image:image||''});open('${destination}?'+q.toString(),'_blank')}catch(e){alert('No fue posible leer este producto. Copia su enlace y pégalo en Tráelo GT.')}})();`;
-    const configuredOrigin=process.env.NEXT_PUBLIC_SITE_URL||"",scriptOrigin=configuredOrigin.startsWith("https://")?configuredOrigin:location.origin;
-    setBookmarklet(scriptOrigin.startsWith("https://")?makeBookmarkletLoader(scriptOrigin,destination):makeTemuCompatibleBookmarklet(destination));
+    // Temu bloquea scripts externos mediante CSP; el favorito debe ser autónomo.
+    setBookmarklet(makeTemuCompatibleBookmarklet(destination));
     setDraftReady(true);
   },[]);
 

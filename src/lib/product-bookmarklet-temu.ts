@@ -5,5 +5,6 @@ export function makeTemuCompatibleBookmarklet(destination:string){
   return makeSingleTabBookmarklet(destination)
     .replace("candidates.sort((a,b)=>b.score-a.score)",()=>`${extra};candidates.sort((a,b)=>b.score-a.score)`)
     .replace("for(const s of ['#variation_color_name .selection','#variation_size_name .selection','[aria-selected=\"true\"]','[aria-checked=\"true\"]','[class*=\"selected\" i]'])",`for(const s of ['#variation_color_name .selection','#variation_size_name .selection','[aria-selected="true"]','[aria-checked="true"]','[class*="selected" i]','[class*="sku-item_active" i]','[class*="sku-item"] [class*="active" i]','[class*="product-intro__head-sku"] [class*="_active" i]'])`)
+    .replace("const value=t(s);if(value&&value.length<100&&!seen.has(value))",()=>"const value=t(s);if(store==='amazon'&&/^(?:subtitles?|captions?)\\s+(?:on|off)(?:,\\s*selected)?$/i.test(value))continue;if(value&&value.length<100&&!seen.has(value))")
     .replace("const price=String(Number(n)||'');if(!price)","const price=String(Number(n)||'');if(Number(price)>1000000){alert('El precio detectado no es válido. Recarga el producto y vuelve a intentarlo.');return}if(!price)");
 }
