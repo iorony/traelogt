@@ -71,3 +71,10 @@ section.bg-black a[target="_blank"]:active{background:#000!important;color:#fff!
 .bookmarklet-summary{display:flex!important;flex-flow:row nowrap!important;align-items:center!important;justify-content:flex-start!important;gap:.5rem!important;width:100%}
 .bookmarklet-summary>svg{display:block!important;flex:0 0 18px!important;margin:0!important}
 .bookmarklet-summary>span{display:inline!important;margin:0!important}
+
+/* Align account disclosure controls in one row and replace the browser marker. */
+summary.flex{display:flex!important;align-items:center!important;list-style:none!important;width:100%}
+summary.flex::-webkit-details-marker{display:none}
+summary.flex::marker{content:""}
+summary.flex::after{content:"›";margin-left:auto;font-size:1.35rem;line-height:1;color:#999;transition:transform .18s ease}
+details[open]>summary.flex::after{transform:rotate(90deg);color:#e45f00}
