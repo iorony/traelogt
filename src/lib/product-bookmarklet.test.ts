@@ -9,6 +9,7 @@ describe("favorito de productos",()=>{
   it("lee variantes activas de SHEIN",()=>{expect(script).toContain("sku-item_active");expect(script).toContain("product-intro__head-sku")});
   it("funciona sin cargar scripts externos bloqueados por Temu",()=>{expect(script).not.toContain("createElement('script')");expect(script).not.toContain("/api/bookmarklet/script")});
   it("descarta controles de subtítulos de Amazon y reconoce Tamaño",()=>{expect(script).toContain("subtitles?");expect(script).toContain("Tamaño")});
+  it("no repite una opción seleccionada que ya tiene etiqueta",()=>{expect(script).toContain("part.split(':').pop()");expect(script).toContain("!duplicate")});
   it("genera JavaScript ejecutable",()=>{expect(script.startsWith("javascript:")).toBe(true);try{new vm.Script(script.slice("javascript:".length))}catch(error){console.error(error);throw error}});
   it("extrae automáticamente sin pedir precio ni moneda",()=>{expect(script).not.toContain("prompt(");expect(script).toContain("Precio: '+price");expect(script).toContain("Number(price)>1000000")});
 });
