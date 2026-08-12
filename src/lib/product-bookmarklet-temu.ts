@@ -1,0 +1,9 @@
+import {makeSingleTabBookmarklet} from "./product-bookmarklet-single-tab";
+
+export function makeTemuCompatibleBookmarklet(destination:string){
+  const extra=`for(const e of document.querySelectorAll('span,div')){if(!visible(e))continue;const full=(e.textContent||'').trim();let match=null,v='';if(store==='temu'){match=full.match(/(?:^|\\s)(Q|MXN?\\s*\\$)\\s*(\\d[\\d.,]*)/i);if(match)v=match[1]+match[2]}else if(store==='shein'){match=full.match(/(?:^|\\s)(MXN\\s*\\$?|MX\\$)\\s*(\\d[\\d.,]*)/i);if(match)v=match[1]+match[2];else{match=full.match(/(?:^|\\s)(\\d[\\d.,]*)\\s*(?:\\$\\s*MXN|MXN)(?:\\s|$)/i);if(match)v='MXN$'+match[1]}}else if(store==='aliexpress'){match=full.match(/(?:^|\\s)(US\\s*\\$|USD)\\s*(\\d[\\d.,]*)/i);if(match)v=match[1]+match[2]}if(!match)continue;const s=getComputedStyle(e),strike=s.textDecorationLine.includes('line-through')||!!e.closest('[class*="original" i],[class*="del" i],[class*="retail" i]'),leaf=e.children.length===0;candidates.push({v,score:300+(leaf?80:0)+Math.min(parseFloat(s.fontSize)||0,40)-(strike?500:0)-full.length/20})}`;
+  return makeSingleTabBookmarklet(destination)
+    .replace("candidates.sort((a,b)=>b.score-a.score)",()=>`${extra};candidates.sort((a,b)=>b.score-a.score)`)
+    .replace("for(const s of ['#variation_color_name .selection','#variation_size_name .selection','[aria-selected=\"true\"]','[aria-checked=\"true\"]','[class*=\"selected\" i]'])",`for(const s of ['#variation_color_name .selection','#variation_size_name .selection','[aria-selected="true"]','[aria-checked="true"]','[class*="selected" i]','[class*="sku-item_active" i]','[class*="sku-item"] [class*="active" i]','[class*="product-intro__head-sku"] [class*="_active" i]'])`)
+    .replace("const price=String(Number(n)||'');if(!price)","const price=String(Number(n)||'');if(Number(price)>1000000){alert('El precio detectado no es válido. Recarga el producto y vuelve a intentarlo.');return}if(!price)");
+}

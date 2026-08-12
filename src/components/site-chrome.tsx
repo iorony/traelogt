@@ -1,5 +1,5 @@
 "use client";
-import Image from "next/image";import Link from "next/link";import {forwardRef,useEffect,useLayoutEffect,useRef,useState} from "react";import {ArrowRight,Menu,MessageCircle,Minus,Plus,ShoppingBag,Trash2,UserRound,X} from "lucide-react";
+import Image from "next/image";import Link from "next/link";import {forwardRef,useEffect,useLayoutEffect,useRef,useState} from "react";import {ArrowRight,Link2,Menu,MessageCircle,Minus,PackageCheck,Plus,ShoppingBag,Trash2,UserRound,X} from "lucide-react";
 import BrandLogo from "@/components/brand-logo";import {effectivePrice,formatGTQ} from "@/lib/format";import {cartLineKey,cartSubtotal,useCart} from "@/hooks/use-cart";
 
 /**
@@ -13,13 +13,13 @@ export const SiteHeader=forwardRef<HTMLDivElement,{announcement:string;onCart:()
  return <div ref={ref} className="fixed top-0 inset-x-0 z-30">
  <div className="bg-black text-white text-center text-xs py-2.5 px-3">{announcement}</div>
  <header className="border-b bg-white relative">
-  <div className="container h-20 flex items-center gap-8">
-   <button onClick={()=>setMenu(!menu)} aria-expanded={menu} aria-label={menu?"Cerrar menú":"Abrir menú"} className="md:hidden w-10 h-10 grid place-items-center rounded-full border"><Menu/></button>
-   <BrandLogo/>
-   <nav className="hidden md:flex gap-7 text-sm font-bold ml-4"><Link href="/productos">Productos disponibles</Link><Link href="/cotizar">Cotizar producto</Link><Link href="/rastreo">Rastrear</Link></nav>
-   <div className="ml-auto flex items-center gap-5"><Link href="/mi-cuenta" aria-label="Mi cuenta"><UserRound size={20}/></Link><button onClick={onCart} className="relative" aria-label={`Carrito, ${count} artículos`}><ShoppingBag size={22}/>{count>0&&<span className="absolute -top-2 -right-2 bg-[#ff6b00] text-white w-5 h-5 text-[10px] rounded-full grid place-items-center">{count}</span>}</button></div>
+  <div className="public-header-inner container flex h-20 items-center gap-8">
+   <button onClick={()=>setMenu(!menu)} aria-expanded={menu} aria-label={menu?"Cerrar menú":"Abrir menú"} className="public-menu-trigger grid h-10 w-10 shrink-0 place-items-center rounded-full border border-[#ccc] md:hidden">{menu?<X size={21}/>:<Menu size={21}/>}</button>
+   <div className="min-w-0 shrink"><BrandLogo/></div>
+   <nav className="public-desktop-nav ml-4 hidden gap-7 text-sm font-bold md:flex"><Link href="/productos">Productos disponibles</Link><Link href="/cotizar">Cotizar producto</Link><Link href="/rastreo">Rastrear</Link></nav>
+   <div className="ml-auto flex shrink-0 items-center gap-4"><Link href="/mi-cuenta" className="grid h-9 w-9 place-items-center rounded-full hover:bg-[#f5f5f3]" aria-label="Mi cuenta"><UserRound size={20}/></Link><button onClick={onCart} className="relative grid h-9 w-9 place-items-center rounded-full hover:bg-[#f5f5f3]" aria-label={`Carrito, ${count} artículos`}><ShoppingBag size={22}/>{count>0&&<span className="absolute -right-1 -top-1 grid h-5 w-5 place-items-center rounded-full bg-[#ff6b00] text-[10px] text-white">{count}</span>}</button></div>
   </div>
-  {menu&&<nav className="md:hidden absolute top-full inset-x-0 border-t px-4 py-4 grid gap-2 font-bold text-sm bg-white shadow-lg max-h-[75vh] overflow-y-auto"><Link onClick={close} className="p-3 rounded-xl bg-[#f5f5f3]" href="/productos">Productos disponibles</Link><Link onClick={close} className="p-3 rounded-xl bg-[#f5f5f3]" href="/cotizar">Cotizar producto</Link><Link onClick={close} className="p-3 rounded-xl bg-[#f5f5f3]" href="/rastreo">Rastrear</Link></nav>}
+  {menu&&<><button type="button" onClick={close} aria-label="Cerrar menú" className="public-menu-backdrop fixed inset-0 top-full bg-black/35 md:hidden"/><nav className="public-mobile-nav absolute inset-x-0 top-full grid gap-2 border-t bg-white p-4 shadow-xl md:hidden"><Link onClick={close} href="/productos"><ShoppingBag size={18}/><span><strong>Productos disponibles</strong><small>Compra artículos listos para entrega</small></span><ArrowRight size={16}/></Link><Link onClick={close} href="/cotizar"><Link2 size={18}/><span><strong>Cotizar producto</strong><small>Arma tu lista de tiendas internacionales</small></span><ArrowRight size={16}/></Link><Link onClick={close} href="/rastreo"><PackageCheck size={18}/><span><strong>Rastrear pedido</strong><small>Consulta el progreso de tu compra</small></span><ArrowRight size={16}/></Link></nav></>}
  </header>
  </div>});
 
