@@ -5,7 +5,7 @@ export const dynamic="force-dynamic";
 export function GET(request:NextRequest){
   const requested=request.nextUrl.searchParams.get("target");let destination=`${request.nextUrl.origin}/cotizar`;
   if(requested){try{const target=new URL(requested);if(target.pathname==="/cotizar"&&(target.protocol==="https:"||target.hostname==="localhost"||target.hostname==="127.0.0.1"))destination=target.toString()}catch{}}
-  const script=`(()=>{try{
+  const script=String.raw`(()=>{try{
 const meta=k=>document.querySelector('meta[property="'+k+'"],meta[name="'+k+'"]')?.content||'';
 const findProduct=v=>{if(!v)return null;if(Array.isArray(v)){for(const x of v){const p=findProduct(x);if(p)return p}}else if(typeof v==='object'){const t=v['@type'];if(t==='Product'||Array.isArray(t)&&t.includes('Product'))return v;for(const x of Object.values(v)){const p=findProduct(x);if(p)return p}}return null};
 let product=null;for(const s of document.querySelectorAll('script[type="application/ld+json"]')){try{product=findProduct(JSON.parse(s.textContent));if(product)break}catch(e){}}
