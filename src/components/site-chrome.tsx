@@ -8,8 +8,10 @@ import BrandLogo from "@/components/brand-logo";import {effectivePrice,formatGTQ
  * incluidos los casos donde overflow-x:hidden en html/body rompe el comportamiento de sticky.
  */
 export const SiteHeader=forwardRef<HTMLDivElement,{announcement:string;onCart:()=>void}>(function SiteHeader({announcement,onCart},ref){
- const count=useCart(s=>s.hydrated?s.items.reduce((total,item)=>total+item.quantity,0):0);const [menu,setMenu]=useState(false);
+ const count=useCart(s=>s.hydrated?s.items.reduce((total,item)=>total+item.quantity,0):0);const [menu,setMenu]=useState(false),[accountNotice,setAccountNotice]=useState<{key:string;latest:string;count:number}|null>(null);
  const close=()=>setMenu(false);
+ useEffect(()=>{fetch("/api/customer-notifications",{cache:"no-store"}).then(response=>response.ok?response.json():null).then(data=>{if(!data?.authenticated||!data.latest||!data.count)return;const key=`traelo-account-seen-${data.userId}`;if(localStorage.getItem(key)!==data.latest)setAccountNotice({key,latest:data.latest,count:data.count})}).catch(()=>undefined)},[]);
+ const openAccount=()=>{if(accountNotice){localStorage.setItem(accountNotice.key,accountNotice.latest);setAccountNotice(null)}};
  return <div ref={ref} className="fixed top-0 inset-x-0 z-30">
  <div className="bg-black text-white text-center text-xs py-2.5 px-3">{announcement}</div>
  <header className="border-b bg-white relative">
@@ -17,7 +19,7 @@ export const SiteHeader=forwardRef<HTMLDivElement,{announcement:string;onCart:()
    <button onClick={()=>setMenu(!menu)} aria-expanded={menu} aria-label={menu?"Cerrar menú":"Abrir menú"} className="public-menu-trigger grid h-10 w-10 shrink-0 place-items-center rounded-full border border-[#ccc] md:hidden">{menu?<X size={21}/>:<Menu size={21}/>}</button>
    <div className="min-w-0 shrink"><BrandLogo/></div>
    <nav className="public-desktop-nav ml-4 hidden gap-7 text-sm font-bold md:flex"><Link href="/productos">Productos disponibles</Link><Link href="/cotizar">Cotizar producto</Link><Link href="/rastreo">Rastrear</Link></nav>
-   <div className="ml-auto flex shrink-0 items-center gap-4"><Link href="/mi-cuenta" className="grid h-9 w-9 place-items-center rounded-full hover:bg-[#f5f5f3]" aria-label="Mi cuenta"><UserRound size={20}/></Link><button onClick={onCart} className="relative grid h-9 w-9 place-items-center rounded-full hover:bg-[#f5f5f3]" aria-label={`Carrito, ${count} artículos`}><ShoppingBag size={22}/>{count>0&&<span className="absolute -right-1 -top-1 grid h-5 w-5 place-items-center rounded-full bg-[#ff6b00] text-[10px] text-white">{count}</span>}</button></div>
+   <div className="ml-auto flex shrink-0 items-center gap-4"><Link href="/mi-cuenta" onClick={openAccount} className="relative grid h-9 w-9 place-items-center rounded-full hover:bg-[#f5f5f3]" aria-label={accountNotice?`Mi cuenta, ${accountNotice.count} registros con seguimiento`:"Mi cuenta"}><UserRound size={20}/>{accountNotice&&<><span className="absolute right-0.5 top-0.5 h-2.5 w-2.5 animate-ping rounded-full bg-[#ff6b00]/60"/><span className="absolute right-0.5 top-0.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-[#ff6b00]"/></>}</Link><button onClick={onCart} className="relative grid h-9 w-9 place-items-center rounded-full hover:bg-[#f5f5f3]" aria-label={`Carrito, ${count} artículos`}><ShoppingBag size={22}/>{count>0&&<span className="absolute -right-1 -top-1 grid h-5 w-5 place-items-center rounded-full bg-[#ff6b00] text-[10px] text-white">{count}</span>}</button></div>
   </div>
   {menu&&<><button type="button" onClick={close} aria-label="Cerrar menú" className="public-menu-backdrop fixed inset-0 top-full bg-black/35 md:hidden"/><nav className="public-mobile-nav absolute inset-x-0 top-full grid gap-2 border-t bg-white p-4 shadow-xl md:hidden"><Link onClick={close} href="/productos"><ShoppingBag size={18}/><span><strong>Productos disponibles</strong><small>Compra artículos listos para entrega</small></span><ArrowRight size={16}/></Link><Link onClick={close} href="/cotizar"><Link2 size={18}/><span><strong>Cotizar producto</strong><small>Arma tu lista de tiendas internacionales</small></span><ArrowRight size={16}/></Link><Link onClick={close} href="/rastreo"><PackageCheck size={18}/><span><strong>Rastrear pedido</strong><small>Consulta el progreso de tu compra</small></span><ArrowRight size={16}/></Link></nav></>}
  </header>
@@ -49,7 +51,7 @@ export function WhatsAppButton(){const [number,setNumber]=useState("50258221607"
  * El header es fixed, así que este componente mide su altura real (con ResizeObserver, se ajusta
  * si el texto del anuncio cambia de tamaño) y agrega un espaciador para que el contenido no quede tapado.
  */
-export default function PublicChrome({announcement,children}:{announcement:string;children:React.ReactNode}){
+export default function PublicChrome({announcement="Compras y cotizaciones con seguimiento en Guatemala",children}:{announcement?:string;children:React.ReactNode}){
  const [cart,setCart]=useState(false);
  const headerRef=useRef<HTMLDivElement>(null);
  const [offset,setOffset]=useState(112);
