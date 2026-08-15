@@ -5,7 +5,7 @@ import vm from "node:vm";
 describe("favorito de productos",()=>{
   const script=makeTemuCompatibleBookmarklet("https://traelo.example/cotizar");
   it("navega en la misma pestaña",()=>{expect(script).toContain("location.assign('https://traelo.example/cotizar?'");expect(script).not.toContain("target=open(")});
-  it("prioriza monedas visibles por tienda",()=>{expect(script).toContain("store==='temu'");expect(script).toContain("store==='shein'");expect(script).toContain("store==='aliexpress'");expect(script).toContain("score:300");expect(script).toContain("MXN\\s*\\$?")});
+  it("prioriza el precio de oferta y descarta cupones o precios anteriores",()=>{expect(script).toContain("store==='temu'");expect(script).toContain("store==='shein'");expect(script).toContain("store==='aliexpress'");expect(script).toContain("priceClass?500:220");expect(script).toContain("coupon|cupon|voucher|discount");expect(script).toContain("MXN\\s*\\$?")});
   it("lee variantes activas de SHEIN",()=>{expect(script).toContain("sku-item_active");expect(script).toContain("product-intro__head-sku")});
   it("funciona sin cargar scripts externos bloqueados por Temu",()=>{expect(script).not.toContain("createElement('script')");expect(script).not.toContain("/api/bookmarklet/script")});
   it("descarta controles de subtítulos de Amazon y reconoce Tamaño",()=>{expect(script).toContain("subtitles?");expect(script).toContain("Tamaño")});
